@@ -11,7 +11,7 @@ const btn = document.getElementById('login');
 btn.addEventListener('click', () => {
     userlogged.textContent = '';
     platos.textContent = '';
-    
+
     getToken(usr.value, pwd.value);
     let tokenObtenido = JSON.stringify(localStorage.getItem("jwt"));
     parrafo.textContent = `El token es: ${tokenObtenido}`;
