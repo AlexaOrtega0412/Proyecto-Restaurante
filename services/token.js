@@ -15,11 +15,12 @@ export function getToken(user = "Pedro",pass = "clave1415"){
         return response.json();
     })
     .then(data => {
-        console.log("Data recibida:", data);
+        // console.log("Data recibida:", data);
 
         if (data.token) {
             console.log("Token recibido:", data.token);            
             localStorage.setItem("jwt", data.token);
+            
         } else {
             console.error("Error en login:", data.error || "No se recibió un token");
         }
