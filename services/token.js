@@ -2,6 +2,7 @@
 fetch("https://1163-2806-2f0-a600-ea05-dc54-9c81-c154-aa9a.ngrok-free.app/api.php", {
     method: "POST",
     headers: {
+        "Authorization": "Bearer " ,
         "Content-Type": "application/json"
     },
     body: JSON.stringify({ usuario: "ZAPA", clave: "akjkszpj" })
