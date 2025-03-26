@@ -1,92 +1,101 @@
 <?php
-require 'vendor/autoload.php';
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
-header("Content-Type: application/json");
+header("Content-Type: application/json");  
 
-// Manejar preflight (solicitudes OPTIONS de CORS)
-if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
-    http_response_code(200);
-    exit;
+// Si es una solicitud OPTIONS (preflight), solo devolver una respuesta vacía
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') { exit;}
+
+require_once 'vendor/autoload.php';
+
+use \Firebase\JWT\JWT;
+
+// Función para decodificar el JWT
+function decodeJWT($jwt) {
+    $key = "clave_secreta"; // Usa tu clave secreta para verificar el token
+    try {
+        // Intentamos decodificar el JWT
+        $decoded = JWT::decode($jwt, $key);  // Solo pasamos el JWT y la clave secreta
+        return (object) $decoded;  // Convertimos el resultado en un objeto
+    } catch (Exception $e) {
+        // Si ocurre un error en la decodificación, capturamos el error
+        return ['error' => 'Error en la decodificación del token: ' . $e->getMessage()];
+    }
 }
 
-$secretKey = "tu_clave_secreta";
-$host = "127.0.0.1";
-$dbname = "proyectocells";
-$username = "root";
-$password = "";
+// Configuración de la conexión a la base de datos SQLite
+$db_file = 'proyIDS.db'; 
 
-// Conexión a la base de datos
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    echo json_encode(["error" => "Error de conexión: " . $e->getMessage()]);
-    exit;
-}
-
-// Verificar si la solicitud es POST (login) o GET (requiere token)
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // Procesar la solicitud POST para login
-    $data = json_decode(file_get_contents("php://input"), true);
-
-    if (!isset($data["usuario"]) || !isset($data["clave"])) {
-        echo json_encode(["error" => "Faltan campos"]);
+// Función para obtener la conexión a la base de datos SQLite
+function getDB() {
+    global $db_file;
+    try {
+        $db = new PDO('sqlite:' . $db_file);
+        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        return $db;
+    } catch (PDOException $e) {
+        echo json_encode(['error' => 'Error al conectar a la base de datos: ' . $e->getMessage()]);
         exit;
     }
+}
 
-    // Buscar usuario en la base de datos
-    $stmt = $pdo->prepare("SELECT id_usuario, usuario, clave FROM usuarios WHERE usuario = ?");
-    $stmt->execute([$data["usuario"]]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+// Verificar el token JWT en la cabecera Authorization
+if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+    $authorization_header = $_SERVER['HTTP_AUTHORIZATION'];
+    $token = str_replace('Bearer ', '', $authorization_header);
+    $user = decodeJWT($token);
 
-    if ($user && $data["clave"] === $user["clave"]) {
-        // Generar JWT
-        $payload = [
-            "id" => $user["id_usuario"],
-            "usuario" => $user["usuario"],
-            "exp" => time() + 3600 // Expira en 1 hora
-        ];
-        $jwt = JWT::encode($payload, $secretKey, 'HS256');
-        echo json_encode(["token" => $jwt]);
-    } else {
-        echo json_encode(["error" => "Usuario o contraseña incorrectos"]);
+    if (!$user) {
+        echo json_encode(['error' => 'Token inválido o expirado.']);
+        exit;
     }
-} elseif ($_SERVER["REQUEST_METHOD"] === "GET") {
-    // Verificar el encabezado Authorization (token JWT) para las solicitudes GET
-    $headers = apache_request_headers();
-    if (isset($headers['Authorization'])) {
-        $authHeader = $headers['Authorization'];
-        // Extraer el token del encabezado Authorization
-        list($jwt) = sscanf($authHeader, 'Bearer %s');
+}
 
-        if ($jwt) {
-            try {
-                // Decodificar el token
-                $decoded = JWT::decode($jwt, new Key($secretKey, 'HS256'));
+// Si la solicitud es POST (login)
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $data = json_decode(file_get_contents("php://input"));
+    if (isset($data->usuario) && isset($data->clave)) {
+        $usuario = $data->usuario;
+        $clave = $data->clave;
 
-                // Si el token es válido, procedemos con la lógica de consulta
-                // En este caso, obtener los usuarios
-                $stmt = $pdo->prepare("SELECT id_usuario, usuario FROM usuarios");
-                $stmt->execute();
-                $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                echo json_encode(["usuarios" => $users]);
-
-            } catch (Exception $e) {
-                echo json_encode(["error" => "Token no válido o expirado"]);
-            }
+        // Verificación de las credenciales (esto es solo un ejemplo, usa una base de datos en producción)
+        if ($usuario === "Juan" && $clave === "clave123") {
+            $key = "clave_secreta"; // Usa una clave secreta para firmar el token
+            $issuedAt = time();
+            $expirationTime = $issuedAt + 3600;  // El token expira en una hora
+            $payload = array(
+                "iat" => $issuedAt,
+                "exp" => $expirationTime,
+                "usuario" => $usuario
+            );
+            // Generar el token
+            $token = JWT::encode($payload, $key, 'HS256');
+            echo json_encode(["token" => $token]);  // Devolver el token como respuesta
         } else {
-            echo json_encode(["error" => "Token no proporcionado"]);
+            echo json_encode(["error" => "Credenciales incorrectas"]);
         }
     } else {
-        echo json_encode(["error" => "No se recibió el encabezado Authorization"]);
+        echo json_encode(["error" => "Faltan datos de usuario o clave"]);
+    }
+} elseif ($_SERVER['REQUEST_METHOD'] == 'GET') {
+    // Si la solicitud es GET (obtener usuarios), solo responder si el token es válido
+    if (isset($user)) {  // Verificar que el token esté decodificado
+        // Consultar la tabla de usuarios
+        try {
+            $db = getDB();
+            $stmt = $db->prepare("SELECT * FROM usuarios");
+            $stmt->execute();
+            $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode(['usuarios' => $usuarios]);  // Devolver los usuarios como respuesta
+        } catch (PDOException $e) {
+            echo json_encode(['error' => 'Error en la consulta: ' . $e->getMessage()]);
+        }
+    } else {
+        echo json_encode(['error' => 'No autorizado.']);
     }
 } else {
-    echo json_encode(["error" => "Método no permitido"]);
-};
-
+    echo json_encode(['error' => 'Método no soportado.']);
+}
+?>
