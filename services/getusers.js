@@ -1,4 +1,4 @@
-// import { getToken } from "./token.js";
+import { getToken } from "./token.js";
 
 // getToken();
 const token = localStorage.getItem("jwt");
