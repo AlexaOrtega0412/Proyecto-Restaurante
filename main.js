@@ -2,6 +2,7 @@ import { getToken } from './services/token';
 import { getUsers } from './services/getusers';
 
 import { ResComponent } from "./components/ResComponent.js";
+import { CartComponent } from './components/CartComponent.js';
 
 
 const usr = document.getElementById('user');

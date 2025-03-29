@@ -274,8 +274,12 @@ export class ResComponent extends LitElement {
       alert("¡Tu carrito está vacío!");
       return;
     }
-    console.log("Pedido listo para confirmar:", this.cartItems);
-    // Aquí agregarás la redirección después
+    
+    // Se agrega la refencia al otro componente
+    const modalCart = this.shadowRoot.querySelector('cart-component');
+    modalCart.cartItems = this.cartItems;
+    modalCart.isOpen = true;
+    modalCart.requestUpdate();
   }
 
   render() {
@@ -346,6 +350,9 @@ export class ResComponent extends LitElement {
               </button>
             `}
       </div>
+
+      <!-- Se agrega el modal del resumen del carrito -->
+      <cart-component></cart-component>
     `;
   }
 }
