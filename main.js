@@ -11,6 +11,12 @@ const userlogged = document.getElementById('userlogged');
 const platos = document.getElementById('platos');
 
 const btn = document.getElementById('login');
+/**
+ * Obtiene valores de usuario y contraseña para realizar el login
+ * y muestra el token en pantalla.
+ * * @param {string} user
+ * * @param {string} pass
+ */
 btn.addEventListener('click', () => {
     userlogged.textContent = '';
     platos.textContent = '';

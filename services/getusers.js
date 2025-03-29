@@ -1,12 +1,16 @@
 import { getToken } from "./token.js";
 
-// getToken();
 const token = localStorage.getItem("jwt");
 const info = {
     usuario: {},
     platos: []
 };
 
+/**
+ * Realiza consulta a token.js para obtener el token de la API
+ * y luego realiza una solicitud GET a la API para obtener información del usuario.
+ * @returns {Object} info - Arreglo de usuarios y platos 
+ */
 export function getUsers() {
     if (!token) {console.error("Sin token, inicia sesión.");} 
     else {
@@ -14,7 +18,7 @@ export function getUsers() {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": "Bearer " + token // Asegúrate de que el token esté guardado
+                "Authorization": "Bearer " + token 
             }
         })
         .then(response => response.json())

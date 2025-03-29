@@ -1,19 +1,25 @@
 <?php
 
+// Configuración de CORS para permitir solicitudes desde cualquier origen
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");  
 
-// Si es una solicitud OPTIONS (preflight), solo devolver una respuesta vacía
+/**
+ * Si la solicitud es de tipo OPTIONS, no hacemos nada y salimos.
+ */
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') { exit;}
 
+// Cargamos la biblioteca de Firebase JWT
 require_once 'vendor/autoload.php';
-
 use \Firebase\JWT\JWT;
 
+/**
+ * Decodifica el JWT y verifica su validez.
+ */
 function decodeJWT($jwt) {
-    $key = "clave_secreta"; // Usa tu clave secreta para verificar el token
+    $key = "clave_secreta"; 
     try {
         // Intentamos decodificar el JWT
         $decoded = JWT::decode($jwt, new \Firebase\JWT\Key($key, 'HS256'));  // Cambia el tercer argumento por un objeto Key
@@ -21,9 +27,11 @@ function decodeJWT($jwt) {
     } catch (Exception $e) {return null;}
 }
 
+/**
+ * Conecta a la base de datos SQLite y devuelve el objeto PDO.
+ */
 // Configuración de la conexión a la base de datos SQLite
 $db_file = 'proyIDS.db'; 
-// Función para obtener la conexión a la base de datos SQLite
 function getDB() {
     global $db_file;
     try {
@@ -36,7 +44,10 @@ function getDB() {
     }
 }
 
-// Si la solicitud es POST (login)
+/**
+ * Manejador de la solicitud POST para autenticar al usuario y generar un token JWT.
+ * Manejador de la solicitud GET para obtener el usuario autenticado y los platos.
+ */
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data = json_decode(file_get_contents("php://input"));
     if (isset($data->usuario) && isset($data->clave)) {
@@ -74,8 +85,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else {echo json_encode(["error" => "Faltan datos de usuario o clave"]);}
 }
 
+// Si la solicitud es GET (obtener usuario), solo responder si el token es válido
 elseif ($_SERVER['REQUEST_METHOD'] == 'GET') {
-    // Si la solicitud es GET (obtener usuario), solo responder si el token es válido
     if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
         $authorization_header = $_SERVER['HTTP_AUTHORIZATION'];
         $token = str_replace('Bearer ', '', $authorization_header);
@@ -89,7 +100,7 @@ elseif ($_SERVER['REQUEST_METHOD'] == 'GET') {
             exit;
         }
 
-        // Consultar la base de datos para obtener solo el registro del usuario autenticado
+        // Consulta la base de datos para obtener solo el registro del usuario autenticado
         try {
             $db = getDB();
             $stmt = $db->prepare("SELECT * FROM usuarios WHERE nombre = :usuario");

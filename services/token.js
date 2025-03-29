@@ -1,6 +1,11 @@
 
-export function getToken(user = "Pedro",pass = "clave1415"){
-    
+/**
+ * Realiza una petición POST a la API para obtener un token JWT.
+ * El token se almacena en el localStorage del navegador.
+ * @param {*} user 
+ * @param {*} pass 
+ */
+export function getToken(user = "Pedro",pass = "clave1415"){    
    
     const credentials = { usuario: user, clave: pass };
     console.log("Datos enviados para login:", credentials);  // Añadir este log
