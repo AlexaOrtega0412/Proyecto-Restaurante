@@ -3,22 +3,19 @@ import { LitElement, html, css } from 'lit';
 export class ResComponent extends LitElement {
   static properties = {
     cartItems: { type: Array },
-    desserts: { type: Array }
+    desserts: { type: Array },
+    token: { type:String },
+    loggedUser: { type: Object}
+
   };
 
   constructor() {
     super();
     this.cartItems = [];
-    this.desserts = [
-      { id: 1, name: 'Waffle', description: 'Waffle with Bombs', price: 6.50, image: 'waffle.jpg' },
-      { id: 2, name: 'Pie', description: 'Lemon Marrying Pie', price: 5.00, image: 'pie.jpg' },
-      { id: 3, name: 'Calce', description: 'Red Velvet Cake', price: 4.50, image: 'cake.jpg' },
-      { id: 4, name: 'Cerene Bridde', description: 'Vanilla Basin Cerene Bridde', price: 7.00, image: 'creme-brulee.jpg' },
-      { id: 5, name: 'Malay', description: 'Plastorillo Bukana', price: 4.00, image: 'baklava.jpg' },
-      { id: 6, name: 'Brownie', description: 'Salsa Ceramel Brownie', price: 5.50, image: 'brownie.jpg' },
-      { id: 7, name: 'Addison', description: 'Macaron Mix of Five', price: 8.00, image: 'macarons.jpg' },
-      { id: 8, name: 'Palma Cotta', description: 'Vanilla Panva Cotta', price: 6.50, image: 'panna-cotta.jpg' }
-    ];
+    this.desserts = [];
+    this.token = localStorage.getItem("jwt") || "";
+    this.loggedUser = null;
+    
   }
 
   static styles = css`
@@ -30,7 +27,12 @@ export class ResComponent extends LitElement {
       padding: 30px;
       background: #fff9f7;
     }
-    
+    header{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #5c2018;
+    }
     h1 {
       color: #5c2018;
       text-align: center;
@@ -228,7 +230,53 @@ export class ResComponent extends LitElement {
     }
   `;
 
-  
+  connectedCallback() {
+    super.connectedCallback();
+    const userData = localStorage.getItem("usuario");
+    if (userData) {
+      this.loggedUser = JSON.parse(userData);
+    }
+
+    window.addEventListener("login-success", this.handleLoginSuccess.bind(this));
+
+    if (this.token) {
+      this.fetchDesserts();
+    }
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    window.removeEventListener("login-success", this.handleLoginSuccess.bind(this));
+  }
+
+  async fetchDesserts() {
+    try {
+      const response = await fetch('http://localhost:4040/api.php', {
+        headers: {
+          "Authorization": `Bearer ${this.token}`
+        }
+      });
+
+      const data = await response.json();
+      
+      if (data.platos) {
+        this.desserts = data.platos;
+      } else {
+        console.error('Error al obtener los datos:', data.error);
+      }
+    } catch (error) {
+      console.error('Error en la solicitud:', error);
+    }
+  }
+
+  handleLoginSuccess(event) {
+    this.token = event.detail.token;
+    this.loggedUser = event.detail.usuario;
+    this.desserts = event.detail.platos;
+    this.requestUpdate();
+  }
+
+
   getQuantity(productId) {
     const item = this.cartItems.find(item => item.id === productId);
     return item ? item.quantity : 0;
@@ -287,20 +335,37 @@ export class ResComponent extends LitElement {
     this.requestUpdate();
   }
 
+  logOut() {
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("jwt");
+    this.loggedUser = null;
+    window.location.reload(); 
+  }
+
   render() {
+    if(!this.token) {
+      return html`<p>Inicia sesión para ver los platos</p>`;
+    }
+
     return html`
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
+
+    <header>
+      <h3>${this.loggedUser ? this.loggedUser.nombre : 'Usuario'}</h3>
+      <i class="material-icons" @click=${this.logOut}>exit_to_app</i>
+    </header>
       <h1>Desserts</h1>
       
       <div class="menu-container">
         ${this.desserts.map(dessert => html`
           <div class="menu-item">
-            <img class="menu-image" src="./assets/images/${dessert.image}" alt="${dessert.name}">
+            <img class="menu-image" src="./assets/images/${dessert.url_imagen}" alt="${dessert.nombre}">
             <div class="menu-content">
-              <h3>${dessert.name}</h3>
-              <p>${dessert.description}</p>
+              <h3>${dessert.nombre}</h3>
+              <p>${dessert.tamano}</p>
               
               <div class="price-container">
-                <div class="price">$${dessert.price.toFixed(2)}</div>
+                <div class="price">$${dessert.costo.toFixed(2)}</div>
                 
                 ${this.getQuantity(dessert.id) === 0
                   ? html`
@@ -340,7 +405,7 @@ export class ResComponent extends LitElement {
                   const dessert = this.desserts.find(d => d.id === item.id);
                   return html`
                     <div class="cart-item">
-                      <span>${dessert?.name} × ${item.quantity}</span>
+                      <span>${dessert?.nombre} × ${item.quantity}</span>
                       <button class="remove-btn" @click=${() => this.removeFromCart(item.id)}>
                         ×
                       </button>
