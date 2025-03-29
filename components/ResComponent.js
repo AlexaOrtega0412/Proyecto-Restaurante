@@ -282,6 +282,11 @@ export class ResComponent extends LitElement {
     modalCart.requestUpdate();
   }
 
+  limpiarCarrito() {
+    this.cartItems = [];
+    this.requestUpdate();
+  }
+
   render() {
     return html`
       <h1>Desserts</h1>
@@ -352,7 +357,7 @@ export class ResComponent extends LitElement {
       </div>
 
       <!-- Se agrega el modal del resumen del carrito -->
-      <cart-component></cart-component>
+      <cart-component @limpiar-carrito=${this.limpiarCarrito}></cart-component>
     `;
   }
 }

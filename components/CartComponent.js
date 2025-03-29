@@ -33,6 +33,7 @@ export class CartComponent extends LitElement {
         .modal-content {
             background: white;
             padding: 30px;
+            margin: 30px;
             border-radius: 12px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
             max-width: 600px;
@@ -68,11 +69,50 @@ export class CartComponent extends LitElement {
             padding: 12px 0;
             border-bottom: 1px solid #f3e0dc;
         }
+
+        .total {
+            font-size: 20px;
+            font-weight: bold;
+            color: #27ae60;
+            margin: 20px 0;
+            text-align: right;
+        }
+
+        .new-order-btn {
+            background: #c44536;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
+
+        .new-order-btn:hover {
+            background: #a33228;
+        }
     `;
 
     cerrarModal() {
         this.isOpen = false;
         this.requestUpdate();
+    }
+
+    limpiarOrden() {
+        this.isOpen = false;
+        this.dispatchEvent(new CustomEvent('limpiar-carrito', {
+            bubbles: true,
+            composed: true
+        }));
+        this.requestUpdate();
+    }
+
+    obtenerTotal() {
+        return this.cartItems.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
     }
 
     render() {
@@ -82,7 +122,9 @@ export class CartComponent extends LitElement {
         <section class="modal-overlay ${this.isOpen ? '' : 'hidden'}" @click=${this.cerrarModal}>
             <section class="modal-content" @click=${e => e.stopPropagation()}>
                 <button class="close-btn" @click=${this.cerrarModal}>×</button>
-                <h2>Detalles del pedido</h2>
+                <h2>Orden confirmada</h2>
+                <p>¡Esperemos disfrutes tu comida!</p>
+
                 <section class="cart-items">
                     ${this.cartItems.map(item => html`
                         <div class="cart-item">
@@ -91,6 +133,10 @@ export class CartComponent extends LitElement {
                         </div>    
                     `)}
                 </section>
+
+                <section class="total">Total: $${this.obtenerTotal()}</section>
+
+                <button class="new-order-btn" @click=${this.limpiarOrden}>Realizar nueva orden</button>
             </section>
         </section>
     `;

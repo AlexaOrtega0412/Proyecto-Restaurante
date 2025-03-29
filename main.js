@@ -1,6 +1,7 @@
 
 import "./components/Login.js";
 import "./components/ResComponent.js";
+import "./components/CartComponent.js";
 
 
 const loginComponent = document.querySelector("res-login");
