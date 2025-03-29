@@ -188,6 +188,8 @@ export class Login extends LitElement {
     const datosGet = await getUsers();
     this.loggedUser = datosGet.usuario;
     this.platos = datosGet.platos;
+
+    localStorage.setItem("usuario", JSON.stringify(this.loggedUser));
     
    
     this.dispatchEvent(new CustomEvent("login-success", {
