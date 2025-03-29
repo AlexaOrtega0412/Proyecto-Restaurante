@@ -1,39 +1,26 @@
-import { getToken } from './services/token';
-import { getUsers } from './services/getusers';
 
-import { ResComponent } from "./components/ResComponent.js";
-import { CartComponent } from './components/CartComponent.js';
+import "./components/Login.js";
+import "./components/ResComponent.js";
 
 
-const usr = document.getElementById('user');
-const pwd = document.getElementById('contrasena');
-const parrafo = document.getElementById('tokenn');
-const userlogged = document.getElementById('userlogged');
-const platos = document.getElementById('platos');
+const loginComponent = document.querySelector("res-login");
 
-const btn = document.getElementById('login');
-/**
- * Obtiene valores de usuario y contraseña para realizar el login
- * y muestra el token en pantalla.
- * * @param {string} user
- * * @param {string} pass
- */
-btn.addEventListener('click', () => {
-    userlogged.textContent = '';
-    platos.textContent = '';
+loginComponent.addEventListener("login-success", (event) => {
 
-    getToken(usr.value, pwd.value);
-    let tokenObtenido = JSON.stringify(localStorage.getItem("jwt"));
-    parrafo.textContent = `El token es: ${tokenObtenido}`;
-    
-    const datosGet = getUsers();
-    userlogged.textContent = `Usuario: ${datosGet.usuario.nombre} - Perfil: ${datosGet.usuario.perfil}`;
-    datosGet.platos.forEach(element => {
-        const li = document.createElement('li');
-        li.textContent = element.nombre;
-        platos.appendChild(li);
-    });;
-})
+  loginComponent.style.display = "none";
+  
+  
+  const dashboard = document.createElement("res-component");
+  
+  
+  dashboard.token = event.detail.token;
+  dashboard.loggedUser = event.detail.usuario;
+  dashboard.platos = event.detail.platos;
+  
+
+  document.body.appendChild(dashboard);
+});
+
 
 
 
