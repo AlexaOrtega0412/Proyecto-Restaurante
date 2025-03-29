@@ -5,7 +5,7 @@ export function getToken(user = "Pedro",pass = "clave1415"){
     const credentials = { usuario: user, clave: pass };
     console.log("Datos enviados para login:", credentials);  // Añadir este log
     
-    fetch("http://localhost:8000/api.php", {
+    fetch("http://localhost:4040/api.php", {
         method: "POST",
         headers: { "Content-Type": "application/json"},
         body: JSON.stringify(credentials)

@@ -10,7 +10,7 @@ const info = {
 export function getUsers() {
     if (!token) {console.error("Sin token, inicia sesión.");} 
     else {
-        fetch("http://localhost:8000/api.php", {
+        fetch("http://localhost:4040/api.php", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",

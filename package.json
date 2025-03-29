@@ -1,0 +1,26 @@
+{
+  "name": "proyecto-restaurante",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "web-dev-server --node-resolve --open --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlexaOrtega0412/Proyecto-Restaurante.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AlexaOrtega0412/Proyecto-Restaurante/issues"
+  },
+  "homepage": "https://github.com/AlexaOrtega0412/Proyecto-Restaurante#readme",
+  "description": "",
+  "devDependencies": {
+    "@web/dev-server": "^0.4.6"
+  },
+  "dependencies": {
+    "lit": "^3.2.1"
+  }
+}

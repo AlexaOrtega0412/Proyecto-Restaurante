@@ -1,5 +1,8 @@
-import { getToken } from './services/token.js';
-import { getUsers } from './services/getusers.js';
+import { getToken } from './services/token';
+import { getUsers } from './services/getusers';
+
+import { ResComponent } from "./components/ResComponent.js";
+
 
 const usr = document.getElementById('user');
 const pwd = document.getElementById('contrasena');
