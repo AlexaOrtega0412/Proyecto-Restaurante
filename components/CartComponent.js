@@ -112,7 +112,7 @@ export class CartComponent extends LitElement {
     }
 
     obtenerTotal() {
-        return this.cartItems.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
+        return this.cartItems.reduce((total, item) => total + (item.costo * item.quantity), 0).toFixed(2);
     }
 
     render() {
@@ -128,8 +128,8 @@ export class CartComponent extends LitElement {
                 <section class="cart-items">
                     ${this.cartItems.map(item => html`
                         <div class="cart-item">
-                            <span>${item.name} x ${item.quantity}</span>
-                            <span>$${(item.price * item.quantity).toFixed(2)}</span>
+                            <span>${item.nombre} x ${item.quantity}</span>
+                            <span>$${(item.costo * item.quantity).toFixed(2)}</span>
                         </div>    
                     `)}
                 </section>
