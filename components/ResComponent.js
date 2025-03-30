@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import Swal from "sweetalert2";
 
 export class ResComponent extends LitElement {
   static properties = {
@@ -228,6 +229,9 @@ export class ResComponent extends LitElement {
       padding: 30px;
       font-style: italic;
     }
+    i{
+      cursor: pointer;
+    }
   `;
 
   connectedCallback() {
@@ -313,7 +317,23 @@ export class ResComponent extends LitElement {
 
   
   removeFromCart(productId) {
-    this.cartItems = this.cartItems.filter(item => item.id !== productId);
+    Swal.fire({
+      title: "¿Eliminar postre?",
+      text: "Este postre se eliminará de tu carrito.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Eliminar",
+      cancelButtonText: "Cancelar"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.cartItems = this.cartItems.filter(item => item.id !== productId);
+        this.requestUpdate();
+  
+        Swal.fire("Eliminado", "El postre ha sido eliminado del carrito.", "success");
+      }
+    });
   }
 
   // Confirmar pedido (sin redirección aún)
@@ -336,10 +356,26 @@ export class ResComponent extends LitElement {
   }
 
   logOut() {
-    localStorage.removeItem("usuario");
-    localStorage.removeItem("jwt");
-    this.loggedUser = null;
-    window.location.reload(); 
+    Swal.fire({
+      title: "¿Cerrar sesión?",
+      text: "Se cerrará tu sesión y perderás los datos de tu carrito.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Cerrar sesión",
+      cancelButtonText: "Cancelar"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        localStorage.removeItem("jwt");
+        localStorage.removeItem("usuario");
+        localStorage.removeItem("platos");
+  
+        Swal.fire("Sesión cerrada", "Tu sesión ha sido cerrada correctamente.", "success").then(() => {
+          window.location.reload();
+        });
+      }
+    });
   }
 
   render() {
